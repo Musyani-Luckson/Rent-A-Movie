@@ -1,13 +1,15 @@
+
 var mysql = require(`mysql2`);
 const DB_connection = require(`../DB_Connection`);
 // 
+// Customer List
 module.exports.customer_list = async (req, res) => {
     try {
-        const con = await DB_connection();
-        con.connect(function (err) {
+        const connection = await DB_connection();
+        connection.connect(function (err) {
             if (err) throw err;
             const sql = "SELECT * FROM Customer";
-            con.query(sql, function (err, result) {
+            connection.query(sql, function (err, result) {
                 // Send a response back to the client
                 res.send(result);
             });
@@ -15,17 +17,16 @@ module.exports.customer_list = async (req, res) => {
     } catch (error) {
         console.error('Failed to connect to the database:', error);
     }
-    // Send a response back to the client
-    // res.send('Customer list route accessed');
 }
-// 
+
+// Transaction List
 module.exports.transaction_list = async (req, res) => {
     try {
-        const con = await DB_connection();
-        con.connect(function (err) {
+        const connection = await DB_connection();
+        connection.connect(function (err) {
             if (err) throw err;
             const sql = "SELECT * FROM Transaction";
-            con.query(sql, function (err, result) {
+            connection.query(sql, function (err, result) {
                 // Send a response back to the client
                 res.send(result);
             });
@@ -33,10 +34,9 @@ module.exports.transaction_list = async (req, res) => {
     } catch (error) {
         console.error('Failed to connect to the database:', error);
     }
-    // // Send a response back to the client
-    // res.send('Transaction list route accessed');
 }
-// 
+
+// Searching
 module.exports.search_for_customer = (req, res) => {
     // Send a response back to the client
     res.send('searching...');
