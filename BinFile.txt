@@ -1,0 +1,33 @@
+{
+    "first_name": "Firstfake1",
+    "last_name": "Lastfake",
+    "email": "fake1@gmail.com",
+    "password": "fakepassword"
+}
+
+ // connection.query(INSERT_ADMIN_QUERY, ADMIN, (error, results) => {
+            //     if (error) {
+            //         let errorMsg;
+            //         if (first_name == '' || first_name == null || first_name == undefined) {
+            //             errorMsg = 'Firstname is required.';
+            //             return res.status(400).json({ error: errorMsg });
+            //         } else if (last_name == '' || last_name == null || last_name == undefined) {
+            //             errorMsg = 'Lastname is required.';
+            //             return res.status(400).json({ error: errorMsg });
+            //         } else if (email == '' || email == null || email == undefined) {
+            //             errorMsg = 'Email is required.';
+            //             return res.status(400).json({ error: errorMsg });
+            //         } else if (password == '' || password == null || password == undefined) {
+            //             errorMsg = 'Password is required.';
+            //             return res.status(400).json({ error: errorMsg });
+            //         }
+            //     } else {
+            //         const token = createToken(email);
+            //         const response = {
+            //             email,
+            //             results,
+            //             token
+            //         }
+            //         res.status(201).json(response)
+            //     }
+            // })

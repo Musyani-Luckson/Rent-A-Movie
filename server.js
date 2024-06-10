@@ -1,9 +1,16 @@
 const express = require(`express`);
 const app = express();
+require(`dotenv`).config();
+
 // Routes
 const auth_routes = require(`./Routes/auth_routes`);
 const rent_a_movie_routes = require(`./Routes/rent_a_movie_routes`);
-require(`dotenv`).config();
+
+// Middleware to parse JSON bodies
+app.use(express.json());
+// Middleware to parse URL-encoded bodies
+app.use(express.urlencoded({ extended: true }));
+
 // 
 // const cors = require(`cors`);
 // const setCors = {

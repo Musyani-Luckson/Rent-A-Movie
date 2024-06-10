@@ -1,16 +1,32 @@
 
 var mysql = require(`mysql2`);
 const DB_connection = require(`../DB_Connection`);
-// 
+const connection = DB_connection();
 // Customer List
 module.exports.customer_list = async (req, res) => {
     try {
-        const connection = await DB_connection();
+        // const connection = await DB_connection();
         connection.connect(function (err) {
             if (err) throw err;
-            const sql = "SELECT * FROM Customer";
-            connection.query(sql, function (err, result) {
-                // Send a response back to the client
+            const SQL = `SELECT * FROM (
+        SELECT DISTINCT 
+        C.Customer_ID, 
+        C.Phone_Number,
+        CONCAT (C.Last_Name, ' ', C.Middle_Name, ' ', C.First_Name) AS Customer_Name,
+        A.Street_Name AS Street_Address, 
+        Z.City AS City,
+        Z.State AS State,
+        Z.Zip_Code AS Zip_Code
+        FROM 
+		    Address A
+        INNER JOIN 
+            Customer C ON A.Customer_ID= C.Customer_ID
+        INNER JOIN 
+            Zip_Code Z ON A.Zip_Code_ID= Z.Zip_Code_ID
+        ) AS subquery
+        ORDER BY
+	    Customer_Name ASC;`;
+            connection.query(SQL, function (err, result) {
                 res.send(result);
             });
         });
@@ -18,16 +34,36 @@ module.exports.customer_list = async (req, res) => {
         console.error('Failed to connect to the database:', error);
     }
 }
-
 // Transaction List
 module.exports.transaction_list = async (req, res) => {
     try {
-        const connection = await DB_connection();
+        // const connection = await DB_connection();
         connection.connect(function (err) {
             if (err) throw err;
-            const sql = "SELECT * FROM Transaction";
+            const sql = `SELECT * FROM (
+    SELECT DISTINCT 
+        T.Transaction_Date, 
+        CONCAT(C.Last_Name, ' ', IFNULL(C.Middle_Name, ''), ' ', C.First_Name) AS Customer_Name,
+        M.Movie_Title,
+        M_P.Movie_Price,
+        ROUND(M_P.Movie_Price * 0.10, 2) AS Entertainment_Tax,
+        ROUND((M_P.Movie_Price + (M_P.Movie_Price * 0.10)), 2) AS Total_Movie_Price
+    FROM 
+        Transaction_Details T_D
+    INNER JOIN 
+        Transaction T ON T_D.Transaction_ID = T.Transaction_ID
+    INNER JOIN 
+        Customer C ON T.Customer_ID = C.Customer_ID
+    INNER JOIN 
+        Movie M ON T_D.Movie_ID = M.Movie_ID
+    INNER JOIN 
+        Movie_Price M_P ON M.Movie_Price_ID = M_P.Movie_Price_ID
+    INNER JOIN 
+        Entertainment_Tax E_T ON M_P.Tax_ID = E_T.Tax_ID
+) AS subquery
+ORDER BY
+    Customer_Name, Transaction_Date;`;
             connection.query(sql, function (err, result) {
-                // Send a response back to the client
                 res.send(result);
             });
         });
@@ -35,9 +71,21 @@ module.exports.transaction_list = async (req, res) => {
         console.error('Failed to connect to the database:', error);
     }
 }
-
 // Searching
-module.exports.search_for_customer = (req, res) => {
-    // Send a response back to the client
-    res.send('searching...');
+module.exports.search_for_customer = async (req, res) => {
+    // const connection = await DB_connection();
+    const key = Object.keys(req.query)[0];
+    let value = req.query[key];
+    const search_query = `SELECT * FROM Customer WHERE ${key} = ?`;
+
+    if (key == "Phone_Number") {
+        value = `+26${req.query[key].slice(-10)}`;
+    }
+    connection.query(search_query, [value], async (error, results) => {
+        if (error) {
+            res.status(500).send("An error occurred while fetching data.");
+        } else {
+            res.send({ results });
+        }
+    });
 }
