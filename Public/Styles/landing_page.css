@@ -1,0 +1,95 @@
+* {
+  border: solid 1px rgba(0, 0, 0, .2);
+  padding: 0;
+  margin: 0;
+  background: crimson;
+}
+
+.MainLayout {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+.layouts {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  overflow-y: auto;
+}
+/* Mobile Devices (portrait and landscape) up to 767px */
+@media only screen and (max-width: 567px) {
+  .mainHeader {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4rem;
+    display: grid;
+  }
+  .mainMain {
+    left: 0;
+    right: 0;
+    top: 4rem;
+    bottom: 0;
+  }
+  .mainAside {
+    display: none;
+  }
+  .subAside {
+    display: none;
+  }
+}
+/* Tablets and Min Laptops 768px */
+@media only screen and (min-width: 568px) {
+  .mainHeader {
+    top: 0;
+    right: 0;
+    left: 4rem;
+    height: 4rem;
+    display: grid;
+  }
+  .mainMain {
+    top: 4em;
+    bottom: 0;
+    left: 4rem;
+    right: 15rem;
+  }
+  .mainAside {
+    top: 0;
+    bottom: 0;
+    width: 4rem;
+  }
+  .subAside {
+    top: 4rem;
+    bottom: 0;
+    width: 15rem;
+    right: 0;
+  }
+}
+/* Desktops and larger screens 1340px*/
+@media only screen and (min-width: 840px) {
+  .mainHeader {
+    top: 0;
+    left: 9rem;
+    right: 0;
+    height: 4rem;
+    display: grid;
+  }
+  .mainMain {
+    top: 4rem;
+    bottom: 0;
+    left: 9rem;
+    right: 17rem;
+  }
+  .mainAside {
+    top: 0;
+    bottom: 0;
+    width: 9rem;
+  }
+  .subAside {
+    top: 4rem;
+    bottom: 0;
+    width: 17rem;
+    right: 0;
+  }
+}

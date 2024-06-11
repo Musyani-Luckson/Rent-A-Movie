@@ -1,6 +1,7 @@
+const DB_connection = require(`../DB_Connection`);
 const bcrypt = require(`bcrypt`);
 const jwt = require('jsonwebtoken');
-const DB_connection = require(`../DB_Connection`);
+const path = require('path');
 //
 const maxAge = 7 * 24 * 60 * 60;
 const createToken = (email) => {
@@ -9,7 +10,25 @@ const createToken = (email) => {
     })
 }
 // 
-module.exports.signup_post = async (req, res) => {
+const pages = `../public`
+// 
+module.exports.get_admin_signup = async (req, res) => {
+    res.sendFile(path.join(__dirname, `${pages}/signup.html`), (err) => {
+        if (err) {
+            res.status(500).send("Server error");
+        }
+    });
+}
+// 
+module.exports.get_admin_signin = async (req, res) => {
+    res.sendFile(path.join(__dirname, `${pages}/signin.html`), (err) => {
+        if (err) {
+            res.status(500).send("Server error");
+        }
+    });
+}
+// 
+module.exports.new_admin_signup = async (req, res) => {
     const { first_name, last_name, email, password } = req.body;
     const connection = await DB_connection();
     const checkEmailQuery = 'SELECT email FROM Admin WHERE email = ?';
@@ -67,7 +86,7 @@ module.exports.signup_post = async (req, res) => {
     })
 }
 // 
-module.exports.login_post = async (req, res) => {
+module.exports.old_admin_signin = async (req, res) => {
     const { email, password } = req.body;
     const connection = await DB_connection();
     const checkEmailQuery = 'SELECT * FROM Admin WHERE email = ?';
@@ -111,3 +130,4 @@ module.exports.login_post = async (req, res) => {
         });
     })
 }
+

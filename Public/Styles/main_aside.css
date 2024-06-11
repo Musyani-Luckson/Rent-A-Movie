@@ -1,0 +1,79 @@
+.mainAsideTop {
+  position: sticky;
+  top: 0;
+  height: 5.5rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+}
+.mainAsideBottom {
+  position: sticky;
+  height: 4rem;
+  bottom: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+}
+/* Mobile Devices (portrait and landscape) up to 767px */
+@media only screen and (max-width: 567px) {
+  .mainAsideMid {
+    background: none;
+  }
+  .NavLink {
+    display: grid;
+    grid-template-columns: 4rem 1fr;
+  }
+}
+/* Tablets and Min Laptops 768px */
+@media only screen and (min-width: 568px) {
+  .mainAside {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+  .NavLink {
+    display: grid;
+    grid-template-rows: auto auto;
+  }
+  .NavLinkIcon {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    font-weight: bolder;
+  }
+  .NavLinkText {
+    font-size: xx-small;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+  }
+}
+/* Desktops and larger screens 1340px*/
+@media only screen and (min-width: 840px) {
+  .mainAside {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+  .NavLink {
+    display: grid;
+    grid-template-columns: 3rem auto;
+  }
+  .NavLinkIcon {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    font-weight: bolder;
+    font-size: x-large;
+  }
+  .NavLinkText {
+    font-size: small;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}

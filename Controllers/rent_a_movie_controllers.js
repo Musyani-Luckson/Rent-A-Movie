@@ -2,8 +2,59 @@
 var mysql = require(`mysql2`);
 const DB_connection = require(`../DB_Connection`);
 const connection = DB_connection();
+const path = require('path');
+// 
+// PAGES FNS
+const pages = `../public`
+// 1
+module.exports.new_customer_page = async (req, res) => {
+    res.sendFile(path.join(__dirname, `${pages}/add_customer.html`), (err) => {
+        if (err) {
+            res.status(500).send("Server error");
+        }
+    });
+}
+// 2
+module.exports.new_movie_page = async (req, res) => {
+    res.sendFile(path.join(__dirname, `${pages}/add_movie.html`), (err) => {
+        if (err) {
+            res.status(500).send("Server error");
+        }
+    });
+}
+// 3
+module.exports.new_transaction_page = async (req, res) => {
+    res.sendFile(path.join(__dirname, `${pages}/add_transaction.html`), (err) => {
+        if (err) {
+            res.status(500).send("Server error");
+        }
+    });
+}
+// 4
+module.exports.get_customer_list_page = async (req, res) => {
+    res.sendFile(path.join(__dirname, `${pages}/customer_list.html`), (err) => {
+        if (err) {
+            res.status(500).send("Server error");
+        }
+    });
+}
+// 5
+module.exports.get_transaction_list_page = async (req, res) => {
+    res.sendFile(path.join(__dirname, `${pages}/transaction_list.html`), (err) => {
+        if (err) {
+            res.status(500).send("Server error");
+        }
+    });
+}
+//
+
+
+//
+
+
+// 
 // Customer List
-module.exports.customer_list = async (req, res) => {
+module.exports.get_customer_list_data = async (req, res) => {
     try {
         // const connection = await DB_connection();
         connection.connect(function (err) {
@@ -35,7 +86,7 @@ module.exports.customer_list = async (req, res) => {
     }
 }
 // Transaction List
-module.exports.transaction_list = async (req, res) => {
+module.exports.get_transaction_list_data = async (req, res) => {
     try {
         // const connection = await DB_connection();
         connection.connect(function (err) {
@@ -72,7 +123,7 @@ ORDER BY
     }
 }
 // Searching
-module.exports.search_for_customer = async (req, res) => {
+module.exports.get_search_for_customer_data = async (req, res) => {
     // const connection = await DB_connection();
     const key = Object.keys(req.query)[0];
     let value = req.query[key];
@@ -88,4 +139,24 @@ module.exports.search_for_customer = async (req, res) => {
             res.send({ results });
         }
     });
+}
+//
+
+
+
+//
+
+
+
+// 
+module.exports.new_customer = async (req, res) => {
+    res.send("new customer")
+}
+// 
+module.exports.new_movie = async (req, res) => {
+    res.send("new movie")
+}
+// 
+module.exports.new_transaction = async (req, res) => {
+    res.send("new transaction")
 }

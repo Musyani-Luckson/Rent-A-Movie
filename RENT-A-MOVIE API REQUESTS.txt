@@ -1,0 +1,18 @@
+
+https://rent-a-movie-api.onrender.com/v1/get_admin_signup - New Admin Signup Page
+https://rent-a-movie-api.onrender.com/v1/get_admin_signin - Admin Signin Page
+https://rent-a-movie-api.onrender.com/ - Landing Page
+https://rent-a-movie-api.onrender.com/v1/get_customer_list_page - Customer List Page
+https://rent-a-movie-api.onrender.com/v1/new_customer_page - New Customer Page
+https://rent-a-movie-api.onrender.com/v1/get_transaction_list_page - Transaction List Page
+https://rent-a-movie-api.onrender.com/v1/new_transaction_page - New Transaction Page
+https://rent-a-movie-api.onrender.com/v1/new_movie_page - New Movie Page
+https://rent-a-movie-api.onrender.com/v1/new_admin_signup - New Admin Signup (POST)
+https://rent-a-movie-api.onrender.com/v1/old_admin_signin - Admin Signin (POST)
+https://rent-a-movie-api.onrender.com/v1/new_customer - New Customer (POST)
+https://rent-a-movie-api.onrender.com/v1/new_movie - New Movie (POST)
+https://rent-a-movie-api.onrender.com/v1/new_transaction - New Transaction (POST)
+https://rent-a-movie-api.onrender.com/v1/get_customer_list_data - Customer List Data
+https://rent-a-movie-api.onrender.com/v1/get_search_for_customer_data?First_Name=John - Search Customer by Name
+https://rent-a-movie-api.onrender.com/v1/get_search_for_customer_data?Phone_Number=1234567890 - Search Customer by Phone
+https://rent-a-movie-api.onrender.com/v1/get_transaction_list_data - Transaction List Data
