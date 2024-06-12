@@ -156,17 +156,175 @@ module.exports.get_search_for_customer_data = async (req, res) => {
 
 //
 
-
-
+const checkZipCode = (connection, zip_code) => {
+    return new Promise((resolve, reject) => {
+        const checkZipCodeQuery = 'SELECT Zip_Code_ID FROM Zip_Code WHERE zip_code = ?';
+        connection.query(checkZipCodeQuery, [zip_code], (error, results) => {
+            if (error) {
+                return reject('Internal Server Error');
+            }
+            if (results.length === 0) {
+                return reject('Invalid Zip Code');
+            }
+            resolve(results);
+        });
+    });
+};
+// 
+const findCustomerByEmail = (connection, email) => {
+    return new Promise((resolve, reject) => {
+        const checkByEmail = 'SELECT Customer_ID FROM Customer WHERE email = ?';
+        connection.query(checkByEmail, [email], (error, results) => {
+            if (error) {
+                return reject('Internal Server Error');
+            }
+            if (results.length === 0) {
+                return reject('Invalid email');
+            }
+            resolve(results);
+        });
+    });
+};
 // 
 module.exports.new_customer = async (req, res) => {
-    res.send("new customer")
-}
+    const { first_name, last_name, middle_name, email, phone_number, street_name, zip_code } = req.body;
+    const connection = await DB_connection();
+    const checkEmailQuery = 'SELECT email FROM Customer WHERE email = ?';
+    const checkPhoneQuery = 'SELECT phone_number FROM Customer WHERE phone_number = ?';
+    // Validate input before proceeding with the database query
+    if (!first_name || first_name.trim() === '') {
+        return res.status(400).json({ error: 'Firstname is required.' });
+    }
+    if (!last_name || last_name.trim() === '') {
+        return res.status(400).json({ error: 'Lastname is required.' });
+    }
+    if (!email || email.trim() === '') {
+        return res.status(400).json({ error: 'Email is required.' });
+    }
+    if (!phone_number || phone_number.trim() === '') {
+        return res.status(400).json({ error: 'Phone number is required.' });
+    }
+    if (!street_name || street_name.trim() === '') {
+        return res.status(400).json({ error: 'Street name is required.' });
+    }
+    if (!zip_code || zip_code.trim() === '') {
+        return res.status(400).json({ error: 'Zip code is required.' });
+    }
+    connection.query(checkEmailQuery, [email], (error, emailResults) => {
+        if (error) {
+            return res.status(500).send('Internal Server Error');
+        }
+        if (emailResults.length > 0) {
+            return res.status(400).send(`[ ${email} ] is already in use.`);
+        } else {
+            connection.query(checkPhoneQuery, [phone_number], (error, phoneResults) => {
+                if (error) {
+                    return res.status(500).send('Internal Server Error');
+                }
+                if (phoneResults.length > 0) {
+                    return res.status(400).send(`Phone number [ ${phone_number} ] is already in use.`);
+                } else {
+                    checkZipCode(connection, zip_code)
+                        .then(results => {
+                            const Zip_Code_ID = Object.values(results[0])
+                            const INSERT_CUSTOMER_QUERY = `INSERT INTO Customer SET ?`;
+                            const CUSTOMER = {
+                                first_name,
+                                last_name,
+                                middle_name,
+                                email,
+                                phone_number
+                            };
+                            connection.query(INSERT_CUSTOMER_QUERY, CUSTOMER, (error, results) => {
+                                if (error) {
+                                    return res.status(500).json({ error: 'An error occurred while creating the customer.' });
+                                } else {
+                                    findCustomerByEmail(connection, email)
+                                        .then(results => {
+                                            const Customer_ID = Object.values(results[0])
+                                            const INSERT_ADDRESS_QUERY = `INSERT INTO Address SET ?`;
+                                            const ADDRESS = {
+                                                Street_Name: street_name,
+                                                Customer_ID: Customer_ID[0],
+                                                Zip_Code_ID: Zip_Code_ID[0]
+                                            };
+                                            connection.query(INSERT_ADDRESS_QUERY, ADDRESS, (error, results) => {
+                                                res.send(`Customer Added`)
+                                            })
+                                        })
+                                        .catch(error => {
+                                        });
+                                }
+                            });
+                        })
+                        .catch(error => {
+                        });
+                }
+            });
+        }
+    });
+};
 // 
 module.exports.new_movie = async (req, res) => {
     res.send("new movie")
 }
 // 
 module.exports.new_transaction = async (req, res) => {
-    res.send("new transaction")
+    const { email, movies } = req.body
+    const connection = await DB_connection();
+
+    // Identify the customer using the email and get the ID
+    findCustomerByEmail(connection, email)
+        .then(results => {
+            const Customer_ID = Object.values(results[0])
+            // make a transaction with that ID.
+            const INSERT_TRANSACTION_QUERY = `INSERT INTO Transaction SET ?`;
+            const TRANSACTION = {
+                Customer_ID: Customer_ID[0],
+                Transaction_Date: getCurrentTime()
+            };
+            connection.query(INSERT_TRANSACTION_QUERY, TRANSACTION, (error, results) => {
+                // link that transaction ID to movies in the array
+                const { insertId } = results;
+                const INSERT_TRANSACTION_DETAILS_QUERY = `INSERT INTO Transaction_Details SET ?`;
+                // then make each transaction details using one Transaction ID onto all movies on the list
+                const TRANSACTION_DETAILS_PROMISES = movies.map((Movie_ID) => {
+                    return new Promise((resolve, reject) => {
+                        const TRANSACTION_DETAILS = {
+                            Transaction_ID: insertId,
+                            Movie_ID
+                        };
+                        // 
+                        connection.query(INSERT_TRANSACTION_DETAILS_QUERY, TRANSACTION_DETAILS, (error, results) => {
+                            if (error) {
+                                return reject(error);
+                            }
+                            resolve(results);
+                        });
+                    });
+                });
+                // 
+                Promise.all(TRANSACTION_DETAILS_PROMISES)
+                    .then((results) => {
+                        res.send(results);
+                    })
+                    .catch((error) => {
+                        res.status(500).send(error);
+                    });
+            })
+        })
+        .catch(error => {
+            res.send(error)
+        });
+}
+// 
+function getCurrentTime() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
