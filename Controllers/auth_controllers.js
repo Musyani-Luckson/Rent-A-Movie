@@ -10,7 +10,7 @@ const createToken = (email) => {
     })
 }
 // 
-const pages = `../public`
+const pages = `../Public`
 // 
 module.exports.get_admin_signup = async (req, res) => {
     res.sendFile('signup.html', {
