@@ -13,17 +13,21 @@ const createToken = (email) => {
 const pages = `../public`
 // 
 module.exports.get_admin_signup = async (req, res) => {
-    res.sendFile(path.join(__dirname, `${pages}/signup.html`), (err) => {
+    res.sendFile('signup.html', {
+        root: path.join(__dirname, `${pages}`)
+    }, (err) => {
         if (err) {
-            res.status(500).send("Server error");
+            res.status(500).send(err);
         }
     });
 }
 // 
 module.exports.get_admin_signin = async (req, res) => {
-    res.sendFile(path.join(__dirname, `${pages}/signin.html`), (err) => {
+    res.sendFile('signin.html', {
+        root: path.join(__dirname, `${pages}`)
+    }, (err) => {
         if (err) {
-            res.status(500).send("Server error");
+            res.status(500).send(err);
         }
     });
 }
