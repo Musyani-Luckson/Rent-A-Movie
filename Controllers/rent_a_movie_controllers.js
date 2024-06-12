@@ -1,7 +1,7 @@
 
 var mysql = require(`mysql2`);
 const DB_connection = require(`../DB_Connection`);
-const connection = DB_connection();
+// const connection = DB_connection();
 const path = require('path');
 // 
 // PAGES FNS
@@ -56,7 +56,7 @@ module.exports.get_transaction_list_page = async (req, res) => {
 // Customer List
 module.exports.get_customer_list_data = async (req, res) => {
     try {
-        // const connection = await DB_connection();
+        const connection = await DB_connection();
         connection.connect(function (err) {
             if (err) throw err;
             const SQL = `SELECT * FROM (
@@ -88,7 +88,7 @@ module.exports.get_customer_list_data = async (req, res) => {
 // Transaction List
 module.exports.get_transaction_list_data = async (req, res) => {
     try {
-        // const connection = await DB_connection();
+        const connection = await DB_connection();
         connection.connect(function (err) {
             if (err) throw err;
             const sql = `SELECT * FROM (
@@ -124,7 +124,7 @@ ORDER BY
 }
 // Searching
 module.exports.get_search_for_customer_data = async (req, res) => {
-    // const connection = await DB_connection();
+    const connection = await DB_connection(); 
     const key = Object.keys(req.query)[0];
     let value = req.query[key];
     const search_query = `SELECT * FROM Customer WHERE ${key} = ?`;

@@ -1,4 +1,3 @@
-
 const mysql = require('mysql2');
 require('dotenv').config();
 
@@ -10,24 +9,24 @@ const DATA = {
 };
 // Connection
 const DB_connection = () => {
-    return mysql.createConnection(DATA);
-    // return new Promise((resolve, reject) => {
-    //     try {
-    //         const connection = mysql.createConnection(DATA);
-    //         connection.connect((err) => {
-    //             if (err) {
-    //                 reject(err);
-    //             } else {
-    //                 resolve(connection);
-    //             }
-    //         });
-    //         connection.on('error', (err) => {
-    //             console.error('Database connection error:', err.stack);
-    //         });
-    //     } catch (error) {
-    //         reject(error);
-    //     }
-    // });
+    // return mysql.createConnection(DATA);
+    return new Promise((resolve, reject) => {
+        try {
+            const connection = mysql.createConnection(DATA);
+            connection.connect((err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(connection);
+                }
+            });
+            connection.on('error', (err) => {
+                console.error('Database connection error:', err);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
 };
 
 module.exports = DB_connection;
