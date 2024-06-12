@@ -25,11 +25,6 @@ app.get("/", (req, res) => {
         root: __dirname
     })
 })
-app.get("/get_admin_signup", (req, res) => {
-    res.sendFile(`./signup.html`, {
-        root: __dirname
-    })
-})
 // ...
 app.use(auth_routes);
 app.use(rent_a_movie_routes);
