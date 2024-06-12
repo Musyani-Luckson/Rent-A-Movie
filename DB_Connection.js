@@ -9,7 +9,6 @@ const DATA = {
 };
 // Connection
 const DB_connection = () => {
-    // return mysql.createConnection(DATA);
     return new Promise((resolve, reject) => {
         try {
             const connection = mysql.createConnection(DATA);
@@ -22,6 +21,11 @@ const DB_connection = () => {
             });
             connection.on('error', (err) => {
                 console.error('Database connection error:', err);
+                if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+                    resolve(DB_connection());
+                } else {
+                    reject(err);
+                }
             });
         } catch (error) {
             reject(error);

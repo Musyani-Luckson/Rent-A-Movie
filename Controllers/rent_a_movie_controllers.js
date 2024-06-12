@@ -5,12 +5,14 @@ const DB_connection = require(`../DB_Connection`);
 const path = require('path');
 // 
 // PAGES FNS
-const pages = `../public`
+const pages = `../Public`
 // 1
 module.exports.new_customer_page = async (req, res) => {
-    res.sendFile(path.join(__dirname, `${pages}/add_customer.html`), (err) => {
+    res.sendFile('add_customer.html', {
+        root: path.join(__dirname, '../Public')
+    }, (err) => {
         if (err) {
-            res.status(500).send("Server error");
+            res.status(500).send(err);
         }
     });
 }
@@ -124,7 +126,7 @@ ORDER BY
 }
 // Searching
 module.exports.get_search_for_customer_data = async (req, res) => {
-    const connection = await DB_connection(); 
+    const connection = await DB_connection();
     const key = Object.keys(req.query)[0];
     let value = req.query[key];
     const search_query = `SELECT * FROM Customer WHERE ${key} = ?`;
