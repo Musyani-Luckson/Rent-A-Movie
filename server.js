@@ -2,7 +2,12 @@ const express = require(`express`);
 const app = express();
 require(`dotenv`).config();
 const path = require('path');
-
+const cors = require('cors');
+setCors = {
+    origin: process.env.ORIGIN,
+    credentials: true,
+}
+app.use(cors(setCors))
 // Routes
 const auth_routes = require(`./Routes/auth_routes`);
 const rent_a_movie_routes = require(`./Routes/rent_a_movie_routes`);
