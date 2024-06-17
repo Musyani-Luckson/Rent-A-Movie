@@ -328,3 +328,84 @@ function getCurrentTime() {
     const seconds = String(now.getSeconds()).padStart(2, '0');
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
+
+
+
+
+// Recent trnsactions
+module.exports.get_recent_transactions = async (req, res) => {
+    try {
+        const connection = await DB_connection();
+        connection.connect(function (err) {
+            if (err) throw err;
+            const RecentTransactions = `SELECT 
+            t.Transaction_ID,
+    CONCAT(c.First_Name, ' ', IFNULL(c.Middle_Name, ''), ' ', c.Last_Name) AS Customer_Name,
+    COUNT(td.Movie_ID) AS Movies,
+    ROUND(SUM(mp.Movie_Price), 2) AS Movies_Total,
+    ROUND(SUM(mp.Movie_Price) * 0.10, 2) AS Total_Tax,
+    ROUND(SUM(mp.Movie_Price) * 1.10, 2) AS Total_With_Tax,
+    t.Transaction_Date
+FROM 
+    Transaction t
+JOIN 
+    Customer c ON t.Customer_ID = c.Customer_ID
+JOIN 
+    Transaction_Details td ON t.Transaction_ID = td.Transaction_ID
+JOIN 
+    Movie m ON td.Movie_ID = m.Movie_ID
+JOIN 
+    Movie_Price mp ON m.Movie_Price_ID = mp.Movie_Price_ID
+GROUP BY 
+    t.Transaction_ID, Customer_Name, t.Transaction_Date
+ORDER BY 
+    t.Transaction_Date DESC
+    LIMIT 10;`;
+            connection.query(RecentTransactions, function (err, result) {
+                res.send(result);
+            });
+        });
+    } catch (error) {
+        console.error('Failed to connect to the database:', error);
+    }
+}
+
+//
+//
+// 
+
+// Recent trnsactions
+module.exports.get_each_movie_earnings = async (req, res) => {
+    try {
+        const connection = await DB_connection();
+        connection.connect(function (err) {
+            if (err) throw err;
+            const RecentTransactions = `SELECT 
+    M.Movie_ID,
+    M.Movie_Title,
+    COUNT(TD.Transaction_Details_ID) AS Total_Transactions,
+    MP.Movie_Price AS Actual_Price,
+    SUM(MP.Movie_Price) AS Total_Price_Without_Tax,
+    SUM(MP.Movie_Price * 0.10) AS Total_Tax_Amount,
+    SUM(MP.Movie_Price * 1.10) AS Total_Price_With_Tax
+FROM 
+    Movie M
+JOIN 
+    Transaction_Details TD ON M.Movie_ID = TD.Movie_ID
+JOIN 
+    Transaction T ON TD.Transaction_ID = T.Transaction_ID
+JOIN 
+    Movie_Price MP ON M.Movie_Price_ID = MP.Movie_Price_ID
+GROUP BY 
+    M.Movie_ID, M.Movie_Title, MP.Movie_Price
+ORDER BY 
+    Total_Transactions DESC;
+`;
+            connection.query(RecentTransactions, function (err, result) {
+                res.send(result);
+            });
+        });
+    } catch (error) {
+        console.error('Failed to connect to the database:', error);
+    }
+}

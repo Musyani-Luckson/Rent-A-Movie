@@ -8,6 +8,9 @@ const preReq = `/v1`;
 router.get(`${preReq}/get_customer_list_data`, Controllers.get_customer_list_data);
 router.get(`${preReq}/get_transaction_list_data`, Controllers.get_transaction_list_data);
 router.get(`${preReq}/get_search_for_customer_data`, Controllers.get_search_for_customer_data);
+router.get(`${preReq}/get_recent_transactions`, Controllers.get_recent_transactions);
+router.get(`${preReq}/get_each_movie_earnings`, Controllers.get_each_movie_earnings);
+
 // B
 router.post(`${preReq}/new_customer`, Controllers.new_customer);
 router.post(`${preReq}/new_movie`, Controllers.new_movie);
