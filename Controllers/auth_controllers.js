@@ -2,6 +2,7 @@ const DB_connection = require(`../DB_Connection`);
 const bcrypt = require(`bcrypt`);
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 //
 const maxAge = 7 * 24 * 60 * 60;
 const createToken = (email) => {
@@ -33,7 +34,8 @@ module.exports.get_admin_signin = async (req, res) => {
 }
 // 
 module.exports.new_admin_signup = async (req, res) => {
-    const { first_name, last_name, email, password } = req.body;
+    const { first_name, last_name, email, password, comfirm } = req.body;
+    // res.send(req.body)
     const connection = await DB_connection();
     const checkEmailQuery = 'SELECT email FROM Admin WHERE email = ?';
     connection.query(checkEmailQuery, [email], async (error, results) => {
@@ -41,24 +43,70 @@ module.exports.new_admin_signup = async (req, res) => {
             return res.status(500).send('Internal Server Error');
         }
         if (results.length > 0) {
-            return res.status(400).send(`[ ${email} ] is already in use.`);
+            return res.status(400).send({
+                error: {
+                    message: `Already in use.`,
+                    target: `email`
+                }
+            });
         } else {
-            // Validate input before proceeding with the database query
-            if (first_name == '' || first_name == null || first_name == undefined) {
-                const errorMsg = 'Firstname is required.';
-                return res.status(400).json({ error: errorMsg });
-            } else if (last_name == '' || last_name == null || last_name == undefined) {
-                const errorMsg = 'Lastname is required.';
-                return res.status(400).json({ error: errorMsg });
-            } else if (email == '' || email == null || email == undefined) {
-                const errorMsg = 'Email is required.';
-                return res.status(400).json({ error: errorMsg });
-            } else if (password == '' || password == null || password == undefined) {
-                const errorMsg = 'Password is required.';
-                return res.status(400).json({ error: errorMsg });
-            } else if (password.length < 8) {
-                const errorMsg = 'Password must be at least 8 characters long.';
-                return res.status(400).json({ error: errorMsg });
+            const validations = [
+                {
+                    condition: !first_name, message: {
+                        message: 'Firstname is required.',
+                        target: `firstname`
+                    }
+                },
+                {
+                    condition: !last_name, message: {
+                        message: 'Lastname is required.',
+                        target: `lastname`
+                    }
+                },
+                {
+                    condition: !email, message: {
+                        message: 'Email is required.',
+                        target: `email`
+                    }
+                },
+                {
+                    condition: !password, message: {
+                        message: 'Password is required.',
+                        target: `password`
+                    }
+                },
+                {
+                    condition: password && password.length < 8, message: {
+                        message: 'Password must be at least 8 characters long.',
+                        target: `password`
+                    }
+                },
+                {
+                    condition: !comfirm, message: {
+                        message: 'Comfirm password is required.',
+                        target: `comfirm`
+                    }
+                },
+                {
+                    condition: comfirm && comfirm.length < 8, message: {
+                        message: 'Comfirm password must be at least 8 characters long.',
+                        target: `comfirm`
+                    }
+                },
+                {
+                    condition: password !== comfirm, message: {
+                        message: 'Comfirmed password wrong',
+                        target: `password`
+                    }
+                }
+            ];
+
+            for (let i = 0; i < validations.length; i++) {
+                if (validations[i].condition) {
+                    return res.status(400).json({
+                        error: validations[i].message
+                    });
+                }
             }
             // Proceed with the database query if validation passes
             // Hash the password
@@ -80,9 +128,10 @@ module.exports.new_admin_signup = async (req, res) => {
                     const token = createToken(email);
                     const response = {
                         email,
-                        results,
-                        token
+                        results
                     };
+                    res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000, secure: true });
+                    // res.send('Token created and cookie set');
                     res.status(201).json(response);
                 }
             });
@@ -102,16 +151,36 @@ module.exports.old_admin_signin = async (req, res) => {
         // 
         if (email == '' || email == null || email == undefined) {
             const errorMsg = 'Email is required.';
-            return res.status(400).json({ error: errorMsg });
+            return res.status(400).json({
+                error: {
+                    message: errorMsg,
+                    target: `email`
+                }
+            });
         } else if (password == '' || password == null || password == undefined) {
             const errorMsg = 'Password is required.';
-            return res.status(400).json({ error: errorMsg });
+            return res.status(400).json({
+                error: {
+                    message: errorMsg,
+                    target: `password`
+                }
+            });
         } else if (password.length < 8) {
             const errorMsg = 'Password must be at least 8 characters long.';
-            return res.status(400).json({ error: errorMsg });
+            return res.status(400).json({
+                error: {
+                    message: errorMsg,
+                    target: `password`
+                }
+            });
         }
         if (results.length === 0) {
-            return res.status(400).json({ error: 'Email is incorrect.' });
+            return res.status(400).json({
+                error: {
+                    message: 'Email is incorrect.',
+                    target: `email`
+                }
+            });
         }
         const admin = results[0];
         const hashedPassword = admin.Password;
@@ -122,14 +191,25 @@ module.exports.old_admin_signin = async (req, res) => {
             }
             if (isMatch) {
                 const token = createToken(email);
+                res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000});
                 const response = {
+                    success: true,
                     email,
-                    token,
-                    Logged: true
+                    redirect: process.env.ORIGIN
                 }
-                res.status(200).json(response)
+                // res.send('Token created and cookie set');
+                res.json(response);
+                // res.status(200).json(response)
+                // const url = `${process.env.ORIGIN}`;
+                // res.redirect(301, url);
             } else {
-                return res.status(400).json({ error: 'Password is incorrect.' });
+                return res.status(400).json({
+                    error:
+                    {
+                        message: 'Password is incorrect.',
+                        target: `password`
+                    }
+                });
             }
         });
     })

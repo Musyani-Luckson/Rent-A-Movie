@@ -3,6 +3,8 @@ var mysql = require(`mysql2`);
 const DB_connection = require(`../DB_Connection`);
 // const connection = DB_connection();
 const path = require('path');
+// const { myToken, clearCookie } = require('../MiddleWare/is_valid_token');
+
 // 
 // PAGES FNS
 const pages = `../Public`
@@ -57,36 +59,37 @@ module.exports.get_transaction_list_page = async (req, res) => {
     });
 }
 //
-
-
 //
-
-
 // 
 // Customer List
 module.exports.get_customer_list_data = async (req, res) => {
+    // myToken(req, res, async token => {
+    //     if (token.token) {
+    //         try {
+    //             const { token: { email } } = token;
+    //             // Access granted
     try {
         const connection = await DB_connection();
         connection.connect(function (err) {
             if (err) throw err;
             const SQL = `SELECT * FROM (
-        SELECT DISTINCT 
-        C.Customer_ID, 
-        C.Phone_Number,
-        CONCAT (C.Last_Name, ' ', C.Middle_Name, ' ', C.First_Name) AS Customer_Name,
-        A.Street_Name AS Street_Address, 
-        Z.City AS City,
-        Z.State AS State,
-        Z.Zip_Code AS Zip_Code
-        FROM 
-		    Address A
-        INNER JOIN 
-            Customer C ON A.Customer_ID= C.Customer_ID
-        INNER JOIN 
-            Zip_Code Z ON A.Zip_Code_ID= Z.Zip_Code_ID
-        ) AS subquery
-        ORDER BY
-	    Customer_Name ASC;`;
+                        SELECT DISTINCT
+                        C.Customer_ID,
+                        C.Phone_Number,
+                        CONCAT (C.Last_Name, ' ', C.Middle_Name, ' ', C.First_Name) AS Customer_Name,
+                        A.Street_Name AS Street_Address,
+                        Z.City AS City,
+                        Z.State AS State,
+                        Z.Zip_Code AS Zip_Code
+                        FROM
+                		    Address A
+                        INNER JOIN
+                            Customer C ON A.Customer_ID= C.Customer_ID
+                        INNER JOIN
+                            Zip_Code Z ON A.Zip_Code_ID= Z.Zip_Code_ID
+                        ) AS subquery
+                        ORDER BY
+                	    Customer_Name ASC;`;
             connection.query(SQL, function (err, result) {
                 res.send(result);
             });
@@ -94,9 +97,26 @@ module.exports.get_customer_list_data = async (req, res) => {
     } catch (error) {
         console.error('Failed to connect to the database:', error);
     }
+    // return res.send({ email });
+    //         }
+    //         catch (err) {
+    //             res.send(err);
+    //         }
+    //     } else {
+    //         const { error } = token;
+    //         res.send({ error });
+    //     }
+    // });
+
 }
 // Transaction List
 module.exports.get_transaction_list_data = async (req, res) => {
+
+    // myToken(req, res, async token => {
+    //     if (token.token) {
+    //         try {
+    //             const { token: { email } } = token;
+    //             // Access granted
     try {
         const connection = await DB_connection();
         connection.connect(function (err) {
@@ -131,9 +151,25 @@ ORDER BY
     } catch (error) {
         console.error('Failed to connect to the database:', error);
     }
+    //         }
+    //         catch (err) {
+    //             res.send(err);
+    //         }
+    //     } else {
+    //         const { error } = token;
+    //         res.send({ error });
+    //     }
+    // })
 }
 // Searching
 module.exports.get_search_for_customer_data = async (req, res) => {
+    // myToken(req, res, async token => {
+    //     if (token.token) {
+    //         try {
+    //             const { token: { email } } = token;
+    //             // Access granted
+
+
     const connection = await DB_connection();
     const key = Object.keys(req.query)[0];
     let value = req.query[key];
@@ -149,6 +185,18 @@ module.exports.get_search_for_customer_data = async (req, res) => {
             res.send({ results });
         }
     });
+
+
+    //         }
+    //         catch (err) {
+    //             res.send(err);
+    //         }
+    //     } else {
+    //         const { error } = token;
+    //         res.send({ error });
+    //     }
+    // })
+
 }
 //
 
@@ -187,6 +235,12 @@ const findCustomerByEmail = (connection, email) => {
 };
 // 
 module.exports.new_customer = async (req, res) => {
+    // myToken(req, res, async token => {
+    //     if (token.token) {
+    //         try {
+    //             const { token } = token;
+    // Access granted
+
     const { first_name, last_name, middle_name, email, phone_number, street_name, zip_code } = req.body;
     const connection = await DB_connection();
     const checkEmailQuery = 'SELECT email FROM Customer WHERE email = ?';
@@ -263,10 +317,40 @@ module.exports.new_customer = async (req, res) => {
             });
         }
     });
+
+
+
+    //         }
+    //         catch (err) {
+    //             res.send(err);
+    //         }
+    //     } else {
+    //         const { error } = token;
+    //         res.send({ error });
+    //     }
+    // })
+
+
 };
 // 
 module.exports.new_movie = async (req, res) => {
-    res.send("new movie")
+    myToken(req, res, async token => {
+        if (token.token) {
+            try {
+                const { token } = token;
+                // Access granted
+                res.send("new movie")
+
+
+            }
+            catch (err) {
+                res.send(err);
+            }
+        } else {
+            const { error } = token;
+            res.send({ error });
+        }
+    })
 }
 // 
 module.exports.new_transaction = async (req, res) => {
@@ -362,7 +446,8 @@ ORDER BY
     t.Transaction_Date DESC
     LIMIT 10;`;
             connection.query(RecentTransactions, function (err, result) {
-                res.send(result);
+                res.setHeader('Content-Type', 'application/json');
+                return res.send(JSON.stringify(result));
             });
         });
     } catch (error) {
@@ -384,10 +469,10 @@ module.exports.get_each_movie_earnings = async (req, res) => {
     M.Movie_ID,
     M.Movie_Title,
     COUNT(TD.Transaction_Details_ID) AS Total_Transactions,
-    MP.Movie_Price AS Actual_Price,
-    SUM(MP.Movie_Price) AS Total_Price_Without_Tax,
-    SUM(MP.Movie_Price * 0.10) AS Total_Tax_Amount,
-    SUM(MP.Movie_Price * 1.10) AS Total_Price_With_Tax
+    ROUND(MP.Movie_Price,2) AS Actual_Price,
+    ROUND(SUM(MP.Movie_Price),2) AS Total_Price_Without_Tax,
+    ROUND(SUM(MP.Movie_Price * 0.10),2) AS Total_Tax_Amount,
+    ROUND(SUM(MP.Movie_Price * 1.10),2) AS Total_Price_With_Tax
 FROM 
     Movie M
 JOIN 
@@ -402,6 +487,72 @@ ORDER BY
     Total_Transactions DESC;
 `;
             connection.query(RecentTransactions, function (err, result) {
+                res.send(result);
+            });
+        });
+    } catch (error) {
+        console.error('Failed to connect to the database:', error);
+    }
+}
+//
+// 
+// Totals
+module.exports.get_totals = async (req, res) => {
+    res.status(500).json({ error: 'Something went wrong!' });
+    try {
+        const connection = await DB_connection();
+        connection.connect(function (err) {
+            if (err) throw err;
+            const totalQuery = `SELECT 
+    ROUND((SELECT SUM(MP.Movie_Price * 1.10) 
+     FROM Transaction_Details TD
+     JOIN Movie M ON TD.Movie_ID = M.Movie_ID
+     JOIN Movie_Price MP ON M.Movie_Price_ID = MP.Movie_Price_ID
+    ),2) AS Earnings,
+    
+    (SELECT COUNT(*) FROM Customer) AS Total_Customers,
+    
+    (SELECT COUNT(*) FROM Movie) AS Total_Movies,
+    
+    (SELECT COUNT(*) FROM Transaction_Details) AS Total_Transactions;
+`;
+            connection.query(totalQuery, function (err, result) {
+                if (err) {
+                    return res.send(err)
+                }
+                res.status(200).json(result);
+                // res.send({b:true})
+            });
+        });
+    } catch (error) {
+        console.error('Failed to connect to the database:', error);
+    }
+}
+// 
+// Totals
+module.exports.get_rental_status_summary = async (req, res) => {
+    try {
+        const connection = await DB_connection();
+        connection.connect(function (err) {
+            if (err) throw err;
+            const totalQuery = `SELECT 
+    (SELECT COUNT(*) 
+     FROM Movie 
+     WHERE Movie_ID IN (SELECT DISTINCT Movie_ID FROM Transaction_Details)
+    ) AS Rented_Movies,
+    (SELECT COUNT(*) 
+     FROM Movie 
+     WHERE Movie_ID NOT IN (SELECT DISTINCT Movie_ID FROM Transaction_Details)
+    ) AS Not_Rented_Movies,
+    (SELECT COUNT(*)
+     FROM Customer 
+     WHERE Customer_ID IN (SELECT DISTINCT Customer_ID FROM Transaction)
+    ) AS Renting_Customers,
+    (SELECT COUNT(*)
+     FROM Customer 
+     WHERE Customer_ID NOT IN (SELECT DISTINCT Customer_ID FROM Transaction)
+    ) AS Not_Renting_Customers;`;
+            connection.query(totalQuery, function (err, result) {
                 res.send(result);
             });
         });
