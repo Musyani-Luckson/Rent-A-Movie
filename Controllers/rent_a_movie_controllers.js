@@ -63,16 +63,11 @@ module.exports.get_transaction_list_page = async (req, res) => {
 // 
 // Customer List
 module.exports.get_customer_list_data = async (req, res) => {
-    // myToken(req, res, async token => {
-    //     if (token.token) {
-    //         try {
-    //             const { token: { email } } = token;
-    //             // Access granted
+    let connection;
+
     try {
-        const connection = await DB_connection();
-        connection.connect(function (err) {
-            if (err) throw err;
-            const SQL = `SELECT * FROM (
+        connection = await DB_connection();
+        const SQL = `SELECT * FROM (
                         SELECT DISTINCT
                         C.Customer_ID,
                         C.Phone_Number,
@@ -90,38 +85,25 @@ module.exports.get_customer_list_data = async (req, res) => {
                         ) AS subquery
                         ORDER BY
                 	    Customer_Name ASC;`;
-            connection.query(SQL, function (err, result) {
-                res.send(result);
-            });
-        });
-    } catch (error) {
-        console.error('Failed to connect to the database:', error);
-    }
-    // return res.send({ email });
-    //         }
-    //         catch (err) {
-    //             res.send(err);
-    //         }
-    //     } else {
-    //         const { error } = token;
-    //         res.send({ error });
-    //     }
-    // });
 
+
+        const [results] = await connection.query(SQL);
+        res.send({ results });
+    } catch (error) {
+        res.status(500).send("An error occurred while fetching data.");
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
 }
 // Transaction List
 module.exports.get_transaction_list_data = async (req, res) => {
+    let connection;
 
-    // myToken(req, res, async token => {
-    //     if (token.token) {
-    //         try {
-    //             const { token: { email } } = token;
-    //             // Access granted
     try {
-        const connection = await DB_connection();
-        connection.connect(function (err) {
-            if (err) throw err;
-            const sql = `SELECT * FROM (
+        connection = await DB_connection();
+        const sql = `SELECT * FROM (
     SELECT DISTINCT 
         T.Transaction_Date, 
         CONCAT(C.Last_Name, ' ', IFNULL(C.Middle_Name, ''), ' ', C.First_Name) AS Customer_Name,
@@ -143,61 +125,46 @@ module.exports.get_transaction_list_data = async (req, res) => {
         Entertainment_Tax E_T ON M_P.Tax_ID = E_T.Tax_ID
 ) AS subquery
 ORDER BY
-    Customer_Name, Transaction_Date;`;
-            connection.query(sql, function (err, result) {
-                res.send(result);
-            });
-        });
+    Customer_Name, Transaction_Date;`
+
+
+
+        const [results] = await connection.query(sql);
+        res.send({ results });
     } catch (error) {
-        console.error('Failed to connect to the database:', error);
+        res.status(500).send("An error occurred while fetching data.");
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
-    //         }
-    //         catch (err) {
-    //             res.send(err);
-    //         }
-    //     } else {
-    //         const { error } = token;
-    //         res.send({ error });
-    //     }
-    // })
 }
 // Searching
 module.exports.get_search_for_customer_data = async (req, res) => {
-    // myToken(req, res, async token => {
-    //     if (token.token) {
-    //         try {
-    //             const { token: { email } } = token;
-    //             // Access granted
+    let connection;
+    try {
+        connection = await DB_connection();
+        const key = Object.keys(req.query)[0];
+        let value = req.query[key];
+        const search_query = `SELECT * FROM Customer WHERE ${key} = ?`;
 
-
-    const connection = await DB_connection();
-    const key = Object.keys(req.query)[0];
-    let value = req.query[key];
-    const search_query = `SELECT * FROM Customer WHERE ${key} = ?`;
-
-    if (key == "Phone_Number") {
-        value = `+26${req.query[key].slice(-10)}`;
-    }
-    connection.query(search_query, [value], async (error, results) => {
-        if (error) {
-            res.status(500).send("An error occurred while fetching data.");
-        } else {
-            res.send({ results });
+        if (key == "Phone_Number") {
+            value = `+26${req.query[key].slice(-10)}`;
         }
-    });
 
+        const [results] = await connection.query(search_query, [value]);
+        res.send({ results });
+    } catch (error) {
+        console.error('Error during database operation:', error);
+        res.status(500).send("An error occurred while fetching data.");
+    } finally {
+        if (connection) {
+            connection.release();
+            console.log('Connection released.');
+        }
+    }
+};
 
-    //         }
-    //         catch (err) {
-    //             res.send(err);
-    //         }
-    //     } else {
-    //         const { error } = token;
-    //         res.send({ error });
-    //     }
-    // })
-
-}
 //
 
 
@@ -219,10 +186,18 @@ const checkZipCode = (connection, zip_code) => {
     });
 };
 // 
-const findCustomerByEmail = (connection, email) => {
-    return new Promise((resolve, reject) => {
+const findCustomerByEmail = async (connection, email) => {
+
+
+
+
+    try {
+        connection = await DB_connection();
         const checkByEmail = 'SELECT Customer_ID FROM Customer WHERE email = ?';
-        connection.query(checkByEmail, [email], (error, results) => {
+
+        return new Promise(async (resolve, reject) => {
+            const [results] = await connection.query(checkByEmail);
+            // res.send({ results });
             if (error) {
                 return reject('Internal Server Error');
             }
@@ -231,15 +206,19 @@ const findCustomerByEmail = (connection, email) => {
             }
             resolve(results);
         });
-    });
+    } catch (error) {
+        res.status(500).send("An error occurred while fetching data.");
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
+
+
+
 };
 // 
 module.exports.new_customer = async (req, res) => {
-    // myToken(req, res, async token => {
-    //     if (token.token) {
-    //         try {
-    //             const { token } = token;
-    // Access granted
 
     const { first_name, last_name, middle_name, email, phone_number, street_name, zip_code } = req.body;
     const connection = await DB_connection();
@@ -318,44 +297,46 @@ module.exports.new_customer = async (req, res) => {
         }
     });
 
-
-
-    //         }
-    //         catch (err) {
-    //             res.send(err);
-    //         }
-    //     } else {
-    //         const { error } = token;
-    //         res.send({ error });
-    //     }
-    // })
-
-
 };
 // 
 module.exports.new_movie = async (req, res) => {
-    myToken(req, res, async token => {
-        if (token.token) {
-            try {
-                const { token } = token;
-                // Access granted
-                res.send("new movie")
+    // try {
+    //     connection = await DB_connection();
+    //     const SQL = `SELECT * FROM Customer WHERE ${key} = ?`;
 
 
-            }
-            catch (err) {
-                res.send(err);
-            }
-        } else {
-            const { error } = token;
-            res.send({ error });
-        }
-    })
+    //     const [results] = await connection.query(SQL);
+    //     res.send({ results });
+    // } catch (error) {
+    //     res.status(500).send("An error occurred while fetching data.");
+    // } finally {
+    //     if (connection) {
+    //         connection.release();
+    //     }
+    // }
 }
 // 
 module.exports.new_transaction = async (req, res) => {
     const { email, movies } = req.body
-    const connection = await DB_connection();
+
+    let connection;
+    // try {
+    //     connection = await DB_connection();
+    //     const SQL = `SELECT * FROM Customer WHERE ${key} = ?`;
+
+
+    //     const [results] = await connection.query(SQL);
+    //     res.send({ results });
+    // } catch (error) {
+    //     res.status(500).send("An error occurred while fetching data.");
+    // } finally {
+    //     if (connection) {
+    //         connection.release();
+    //     }
+    // }
+
+
+    // const connection = await DB_connection();
 
     // Identify the customer using the email and get the ID
     findCustomerByEmail(connection, email)
@@ -418,11 +399,10 @@ function getCurrentTime() {
 
 // Recent trnsactions
 module.exports.get_recent_transactions = async (req, res) => {
+    let connection;
     try {
-        const connection = await DB_connection();
-        connection.connect(function (err) {
-            if (err) throw err;
-            const RecentTransactions = `SELECT 
+        connection = await DB_connection();
+        RecentTransactions = `SELECT 
             t.Transaction_ID,
     CONCAT(c.First_Name, ' ', IFNULL(c.Middle_Name, ''), ' ', c.Last_Name) AS Customer_Name,
     COUNT(td.Movie_ID) AS Movies,
@@ -444,28 +424,27 @@ GROUP BY
     t.Transaction_ID, Customer_Name, t.Transaction_Date
 ORDER BY 
     t.Transaction_Date DESC
-    LIMIT 10;`;
-            connection.query(RecentTransactions, function (err, result) {
-                res.setHeader('Content-Type', 'application/json');
-                return res.send(JSON.stringify(result));
-            });
-        });
+    LIMIT 10;`
+        const [results] = await connection.query(RecentTransactions);
+        // return res.send(JSON.stringify(result));
+        res.send({ results });
     } catch (error) {
-        console.error('Failed to connect to the database:', error);
+        res.status(500).send("An error occurred while fetching data.");
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 }
-
-//
-//
 // 
-
 // Recent trnsactions
 module.exports.get_each_movie_earnings = async (req, res) => {
+
+
+    let connection;
     try {
-        const connection = await DB_connection();
-        connection.connect(function (err) {
-            if (err) throw err;
-            const RecentTransactions = `SELECT 
+        connection = await DB_connection();
+        const eachMovieQuery = `SELECT 
     M.Movie_ID,
     M.Movie_Title,
     COUNT(TD.Transaction_Details_ID) AS Total_Transactions,
@@ -486,24 +465,24 @@ GROUP BY
 ORDER BY 
     Total_Transactions DESC;
 `;
-            connection.query(RecentTransactions, function (err, result) {
-                res.send(result);
-            });
-        });
+        const [results] = await connection.query(eachMovieQuery);
+        res.send({ results });
     } catch (error) {
-        console.error('Failed to connect to the database:', error);
+        res.status(500).send("An error occurred while fetching data.");
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 }
 //
-// 
 // Totals
 module.exports.get_totals = async (req, res) => {
-    res.status(500).json({ error: 'Something went wrong!' });
+
+    let connection;
     try {
-        const connection = await DB_connection();
-        connection.connect(function (err) {
-            if (err) throw err;
-            const totalQuery = `SELECT 
+        connection = await DB_connection();
+        const totalQuery = `SELECT 
     ROUND((SELECT SUM(MP.Movie_Price * 1.10) 
      FROM Transaction_Details TD
      JOIN Movie M ON TD.Movie_ID = M.Movie_ID
@@ -516,26 +495,25 @@ module.exports.get_totals = async (req, res) => {
     
     (SELECT COUNT(*) FROM Transaction_Details) AS Total_Transactions;
 `;
-            connection.query(totalQuery, function (err, result) {
-                if (err) {
-                    return res.send(err)
-                }
-                res.status(200).json(result);
-                // res.send({b:true})
-            });
-        });
+        const [results] = await connection.query(totalQuery);
+        res.send({ results });
     } catch (error) {
-        console.error('Failed to connect to the database:', error);
+        res.status(500).send("An error occurred while fetching data.");
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 }
-// 
-// Totals
+//
+// get_rental_status_summary
 module.exports.get_rental_status_summary = async (req, res) => {
+
+
+    let connection;
     try {
-        const connection = await DB_connection();
-        connection.connect(function (err) {
-            if (err) throw err;
-            const totalQuery = `SELECT 
+        connection = await DB_connection();
+        const totalQuery = `SELECT 
     (SELECT COUNT(*) 
      FROM Movie 
      WHERE Movie_ID IN (SELECT DISTINCT Movie_ID FROM Transaction_Details)
@@ -552,11 +530,31 @@ module.exports.get_rental_status_summary = async (req, res) => {
      FROM Customer 
      WHERE Customer_ID NOT IN (SELECT DISTINCT Customer_ID FROM Transaction)
     ) AS Not_Renting_Customers;`;
-            connection.query(totalQuery, function (err, result) {
-                res.send(result);
-            });
-        });
+        const [results] = await connection.query(totalQuery);
+        res.send({ results });
     } catch (error) {
-        console.error('Failed to connect to the database:', error);
+        res.status(500).send("An error occurred while fetching data.");
+    } finally {
+        if (connection) {
+            connection.release();
+        }
     }
 }
+
+
+
+
+
+// let connection;
+// try {
+//     connection = await DB_connection();
+//     const SQL = `SELECT * FROM Customer WHERE ${key} = ?`;
+//     const [results] = await connection.query(SQL);
+//     res.send({ results });
+// } catch (error) {
+//     res.status(500).send("An error occurred while fetching data.");
+// } finally {
+//     if (connection) {
+//         connection.release();
+//     }
+// }
