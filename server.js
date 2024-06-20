@@ -27,11 +27,11 @@ app.listen(PORT, () => {
     console.log(`LISTENING ON PORT: [ ${PORT} ].`);
 });
 // 
-app.get("/", (req, res) => {
-    res.sendFile(process.env.ORIGIN, {
-        root: __dirname
-    })
-})
+// app.get("/", (req, res) => {
+//     res.sendFile(process.env.ORIGIN, {
+//         root: __dirname
+//     })
+// })
 // ...
 app.use(auth_routes);
 app.use(rent_a_movie_routes);
