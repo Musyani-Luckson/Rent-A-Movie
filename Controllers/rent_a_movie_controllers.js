@@ -2,10 +2,18 @@ const DB_connection = require(`../DB_Connection`);
 const { query } = require(`../SQL_Queries/queries`);
 // const { myToken, clearCookie } = require('../MiddleWare/is_valid_token');
 // Customer List
+// Totals
+module.exports.get_totals = async (req, res) => {
+    const connection = await DB_connection();
+    connection.query(query.GET_TOTALS, async (error, results) => {
+    res.send(results);
+    })
+}
+// 
 module.exports.get_customer_list_data = async (req, res) => {
     const connection = await DB_connection();
     connection.query(query.GET_CUSTOMER_LIST_DATA, async (error, results) => {
-        res.send(results);
+        return res.send(results);
     })
 }
 // Transaction List
@@ -129,18 +137,12 @@ module.exports.get_each_movie_earnings = async (req, res) => {
         res.send(results);
     })
 }
-// Totals
-module.exports.get_totals = async (req, res) => {
-    const connection = await DB_connection();
-    connection.query(query.GET_TOTALS, async (error, results) => {
-        res.send(results);
-    })
-}
+
 // GET_RENTAL_STATUS_SUMMARY
 module.exports.get_rental_status_summary = async (req, res) => {
     const connection = await DB_connection();
     connection.query(query.GET_RENTAL_STATUS_SUMMARY, async (error, results) => {
-        res.send(results);
+        return res.send(results);
     })
 }
 // 

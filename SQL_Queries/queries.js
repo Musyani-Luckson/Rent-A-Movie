@@ -97,11 +97,8 @@ ORDER BY
      JOIN Movie M ON TD.Movie_ID = M.Movie_ID
      JOIN Movie_Price MP ON M.Movie_Price_ID = MP.Movie_Price_ID
     ),2) AS Earnings,
-    
     (SELECT COUNT(*) FROM Customer) AS Total_Customers,
-    
     (SELECT COUNT(*) FROM Movie) AS Total_Movies,
-    
     (SELECT COUNT(*) FROM Transaction_Details) AS Total_Transactions;`,
     GET_RENTAL_STATUS_SUMMARY: `SELECT 
     (SELECT COUNT(*) 

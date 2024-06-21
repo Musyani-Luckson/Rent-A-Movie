@@ -181,7 +181,7 @@ module.exports.old_admin_signin = async (req, res) => {
                 }
             });
         }
-        const hashedPassword = admin.Password;
+        const hashedPassword = results[0].Password;
         // Compare the input password with the stored hashed password
         bcrypt.compare(password, hashedPassword, (err, isMatch) => {
             if (err) {
