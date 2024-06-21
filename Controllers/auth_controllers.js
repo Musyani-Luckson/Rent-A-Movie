@@ -35,7 +35,6 @@ module.exports.get_admin_signin = async (req, res) => {
 // 
 module.exports.new_admin_signup = async (req, res) => {
     const { first_name, last_name, email, password, comfirm } = req.body;
-    // res.send(req.body)
     const connection = await DB_connection();
     const checkEmailQuery = 'SELECT email FROM Admin WHERE email = ?';
     connection.query(checkEmailQuery, [email], async (error, results) => {
@@ -177,12 +176,11 @@ module.exports.old_admin_signin = async (req, res) => {
         if (results.length === 0) {
             return res.status(400).json({
                 error: {
-                    message: 'Email is incorrect.',
+                    message: 'Email not found',
                     target: `email`
                 }
             });
         }
-        const admin = results[0];
         const hashedPassword = admin.Password;
         // Compare the input password with the stored hashed password
         bcrypt.compare(password, hashedPassword, (err, isMatch) => {
@@ -191,11 +189,11 @@ module.exports.old_admin_signin = async (req, res) => {
             }
             if (isMatch) {
                 const token = createToken(email);
-                res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000});
+                res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
                 const response = {
                     success: true,
                     email,
-                    redirect: process.env.ORIGIN
+                    // redirect: process.env.ORIGIN
                 }
                 // res.send('Token created and cookie set');
                 res.json(response);
@@ -214,4 +212,39 @@ module.exports.old_admin_signin = async (req, res) => {
         });
     })
 }
-
+// 
+module.exports.old_customer_signin = async (req, res) => {
+    const { phone_number } = req.body;
+    const connection = await DB_connection();
+    const check_Phone = 'SELECT * FROM Customer WHERE Phone_Number = ?';
+    connection.query(check_Phone, [phone_number], async (error, results) => {
+        if (error) {
+            return res.status(500).send('Internal Server Error');
+        }
+        // 
+        if (phone_number == '' || phone_number == null || phone_number == undefined) {
+            const errorMsg = 'Phone number is required.';
+            return res.status(400).json({
+                error: {
+                    message: errorMsg,
+                    target: `phone_number`
+                }
+            });
+        }
+        if (results.length === 0) {
+            return res.status(400).json({
+                error: {
+                    message: 'Phone number not found',
+                    target: `phone_number`
+                }
+            });
+        }
+        const token = createToken(phone_number);
+        res.cookie('jwt', token, { httpOnly: true, maxAge: maxAge * 1000 });
+        const response = {
+            success: true,
+            phone_number,
+        }
+        res.json(response);
+    })
+}

@@ -1,3 +1,4 @@
+
 const mysql = require('mysql2');
 require('dotenv').config();
 
@@ -7,6 +8,7 @@ const DATA = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE
 };
+
 // Connection
 const DB_connection = () => {
     return new Promise((resolve, reject) => {
@@ -20,16 +22,12 @@ const DB_connection = () => {
                 }
             });
             connection.on('error', (err) => {
-                console.error('Database connection error:', err);
-                if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-                    resolve(DB_connection());
-                } else {
-                    reject(err);
-                }
+                console.error('Database connection error:', err.stack);
             });
         } catch (error) {
             reject(error);
         }
     });
 };
+
 module.exports = DB_connection;
